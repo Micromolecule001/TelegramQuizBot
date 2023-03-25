@@ -102,17 +102,17 @@ bot.on('message', (msg) => {
   const chatId = msg.chat.id;
   var question = questions[currentQuestionIndex];
   var answerIndex = question.options.findIndex((option) => option === msg.text);
-	
+ 
 
-	if (msg.text === '/start') {
-  		bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду /quiz");
+ if (msg.text === '/start') {
+    bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду /quiz");
 }
-	if (msg.text === 'quiz') {
-		if (answerIndex === question.correctOptionIndex) {
-    	correctAnswersCount++;
-    	currentQuestionIndex++;
-	}
-		if (answerIndex != question.correctOptionIndex) {
-    	correctAnswersCount++;
-    	currentQuestionIndex++;
+ if (msg.text === 'quiz') {
+  if (answerIndex === question.correctOptionIndex) {
+     correctAnswersCount++;
+     currentQuestionIndex++;
+ }
+  if (answerIndex != question.correctOptionIndex) {
+     correctAnswersCount++;
+     currentQuestionIndex++;
 }}});
