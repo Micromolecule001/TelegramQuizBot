@@ -6,7 +6,7 @@ const bot = new TelegramBot(token, opt);
 
 
 const questions = [{
-    text: "Какие типы данных поддерживает Python?",
+    question: "Какие типы данных поддерживает Python?",
     options: [
       "int, float, bool, complex",
       "str, bytes, bytearray, memoryview",
@@ -16,7 +16,7 @@ const questions = [{
     correctOptionIndex: 1 // Ответ задается порядковыми номерами вариантов ответов
   },
   {
-    text: "Как создать массив в C#?",
+    question: "Как создать массив в C#?",
     options: [
       "var myArray = [];, var myArray = new Array();",
       "int[] myArray = new int[5];, myArray = [1, 2, 3, 4, 5];",
@@ -26,7 +26,7 @@ const questions = [{
     correctOptionIndex: 1 // Ответ задается порядковым номером варианта ответа
   },
   {
-    text: "Как получить значение свойства объекта в JavaScript?",
+    question: "Как получить значение свойства объекта в JavaScript?",
     options: [
       "object.property, object[property], object.getProperty()",
       "object.getProperty, object[property], object.getProperty()",
@@ -35,7 +35,7 @@ const questions = [{
     correctOptionIndex: 1 // Ответ задается порядковым номером варианта ответа
   },
   {
-    text: "Какой язык используется для управления базами данных?",
+    question: "Какой язык используется для управления базами данных?",
     options: [
       "JavaScript, PHP, Python, SQL",
       "C#", "Java, Ruby, Perl",
@@ -45,7 +45,7 @@ const questions = [{
     correctOptionIndex: 3 // Ответ задается порядковым номером варианта ответа
   },
   {
-    text: "Как добавить элемент в список в Python?",
+    question: "Как добавить элемент в список в Python?",
     options: [
       "list.add(element), list.append(element), list.insert(element)",
       "list.add(element), list.insert(element), list.append(element)",
@@ -55,7 +55,7 @@ const questions = [{
     correctOptionIndex: 2 // Ответ задается порядковым номером варианта ответа
   },
   {
-    text: "Какой оператор используется в языке Python для выполнения целочисленного деления?",
+    question: "Какой оператор используется в языке Python для выполнения целочисленного деления?",
     options: [
       "/",
       "%",
@@ -65,7 +65,7 @@ const questions = [{
     correctOptionIndex: 2 // Ответ задается порядковым номером варианта ответа
   },
    {
-    text: "Какая функция используется в языке C# для чтения пользовательского ввода с консоли?",
+    question: "Какая функция используется в языке C# для чтения пользовательского ввода с консоли?",
     options: [
       "Console.Write();",
       "Console.Read();",
@@ -75,7 +75,7 @@ const questions = [{
     correctOptionIndex: 2 // Ответ задается порядковым номером варианта ответа
   },
     {
-    text: "Какая команда используется в SQL для выборки данных из таблицы?",
+    question: "Какая команда используется в SQL для выборки данных из таблицы?",
     options: [
       "UPDATE",
       "DELETE",
@@ -93,26 +93,44 @@ let correctAnswersCount = 0;
 
 function sendQuestion(chatId) {
   const question = questions[currentQuestionIndex];
-  const options = question.options.map((option) => [{ text: option }]);
-  const keyboard = { keyboard: options, resize_keyboard: true };
-  bot.sendMessage(chatId, question.text, { reply_markup: keyboard });
+  const options = question.options;
+  const questionText = question.question;
+
+  bot.sendMessage(chatId, questionText, {
+    reply_markup: {
+      keyboard: options.map((option) => [{ text: option }]),
+      resize_keyboard: true,
+    },
+  });
 }
 
 bot.on('message', (msg) => {
   const chatId = msg.chat.id;
-  var question = questions[currentQuestionIndex];
-  var answerIndex = question.options.findIndex((option) => option === msg.text);
- 
 
- if (msg.text === '/start') {
-    bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду /quiz");
-}
- if (msg.text === 'quiz') {
-  if (answerIndex === question.correctOptionIndex) {
-     correctAnswersCount++;
-     currentQuestionIndex++;
- }
-  if (answerIndex != question.correctOptionIndex) {
-     correctAnswersCount++;
-     currentQuestionIndex++;
-}}});
+  if (msg.text === '/start') {
+    bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду quiz");
+  }
+  
+  if (msg.text === '/quiz') {
+    currentQuestionIndex = 0;
+    correctAnswersCount = 0;
+    sendQuestion(chatId);
+  }
+
+  if (msg.text === '/stop') {
+    bot.sendMessage(chatId, 'Викторина завершена!');
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
+
+  if (msg.text === currentQuestion.options[currentQuestion.correctOptionIndex]) {
+    correctAnswersCount++;
+
+    if (currentQuestionIndex < questions.length - 1) {
+      currentQuestionIndex++;
+      sendQuestion(chatId);
+    } else {
+      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов.`);
+    }
+  }
+});
