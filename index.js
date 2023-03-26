@@ -130,7 +130,14 @@ bot.on('message', (msg) => {
       currentQuestionIndex++;
       sendQuestion(chatId);
     } else {
-      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов.`);
+      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов.`, { reply_markup: { hide_keyboard: true }});
+    }
+  } else {
+    if (currentQuestionIndex < questions.length - 1) {
+      currentQuestionIndex++;
+      sendQuestion(chatId);
+    } else {
+      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов.`, { reply_markup: { hide_keyboard: true }});
     }
   }
 });
