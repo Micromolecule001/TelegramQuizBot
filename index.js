@@ -106,19 +106,22 @@ function sendQuestion(chatId) {
 
 bot.on('message', (msg) => {
   const chatId = msg.chat.id;
+  const messageText = msg.text;
 
-  if (msg.text === '/start') {
-    bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду quiz");
+  if (messageText.startsWith('/start')) {
+    bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду /quiz");
   }
   
-  if (msg.text === '/quiz') {
+  if (messageText.startsWith('/quiz')) {
     currentQuestionIndex = 0;
     correctAnswersCount = 0;
     sendQuestion(chatId);
   }
 
-  if (msg.text === '/stop') {
-    bot.sendMessage(chatId, 'Викторина завершена!');
+  if (messageText.startsWith('/stop')) {
+    currentQuestionIndex = 0;
+    correctAnswersCount = 0;
+    bot.sendMessage(chatId, 'Викторина завершена! Напишите команду /quiz для повторного участия.', { reply_markup: { hide_keyboard: true }});
   }
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -130,14 +133,14 @@ bot.on('message', (msg) => {
       currentQuestionIndex++;
       sendQuestion(chatId);
     } else {
-      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов.`, { reply_markup: { hide_keyboard: true }});
+      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов. Напишите команду /quiz для повторного участия.`, { reply_markup: { hide_keyboard: true }});
     }
   } else {
     if (currentQuestionIndex < questions.length - 1) {
       currentQuestionIndex++;
       sendQuestion(chatId);
     } else {
-      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов.`, { reply_markup: { hide_keyboard: true }});
+      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов. Напишите команду /quiz для повторного участия.`, { reply_markup: { hide_keyboard: true }});
     }
   }
 });
