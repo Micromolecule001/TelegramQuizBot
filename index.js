@@ -1,11 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6292547172:AAEzrNkkpIWYTXYC5tJfu6RxWMxIGHSrVM8';
-var opt = {polling:true};
-const bot = new TelegramBot(token, opt);
+const bot = new TelegramBot(token, { polling: true });
 
-
-
-const questions = [{
+const questions = [
+  {
     question: "Какие типы данных поддерживает Python?",
     options: [
       "int, float, bool, complex",
@@ -64,7 +62,7 @@ const questions = [{
     ],
     correctOptionIndex: 2 // Ответ задается порядковым номером варианта ответа
   },
-   {
+  {
     question: "Какая функция используется в языке C# для чтения пользовательского ввода с консоли?",
     options: [
       "Console.Write();",
@@ -74,7 +72,7 @@ const questions = [{
     ],
     correctOptionIndex: 2 // Ответ задается порядковым номером варианта ответа
   },
-    {
+  {
     question: "Какая команда используется в SQL для выборки данных из таблицы?",
     options: [
       "UPDATE",
@@ -84,63 +82,48 @@ const questions = [{
     ],
     correctOptionIndex: 3 // Ответ задается порядковым номером варианта ответа
   }
-  
- ]
+]
+
+bot.setMyCommands([
+  { command: '/start', description: 'Start the bot' },
+  { command: '/help', description: 'Get help'  },
+  { command: '/stop', description: 'Stop the quiz' },
+  { command: 'quiz', description: 'Start the quiz' }
+])
 
 
-let currentQuestionIndex = 0;
-let correctAnswersCount = 0;
-
-function sendQuestion(chatId) {
-  const question = questions[currentQuestionIndex];
-  const options = question.options;
-  const questionText = question.question;
-
-  bot.sendMessage(chatId, questionText, {
+function generateQuestionMessage(index) {
+  const question = questions[index];
+  const keyboard = question.options.map(option => 
+    ([{
+      text: option,
+      callback_data: option
+    }])
+  );
+  return {
+    text: question.question,
     reply_markup: {
-      keyboard: options.map((option) => [{ text: option }]),
-      resize_keyboard: true,
-    },
-  });
+      inline_keyboard: keyboard
+    }
+  };
 }
 
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
-  const messageText = msg.text;
+//command "/quiz"
 
-  if (messageText.startsWith('/start')) {
-    bot.sendMessage(chatId, "Привет! Добро пожаловать в нашу викторину! Чтобы начать, отправьте команду /quiz");
+bot.onText(/\/quiz/, (msg) => {
+  const chatId = msg.chat.id;
+  let index = 0;
+  while (index < 8) {
+    const questionMessage = generateQuestionMessage(index);
+  bot.sendMessage(chatId, questionMessage.text, questionMessage.reply_markup);
+  index++;
   }
   
-  if (messageText.startsWith('/quiz')) {
-    currentQuestionIndex = 0;
-    correctAnswersCount = 0;
-    sendQuestion(chatId);
-  }
-
-  if (messageText.startsWith('/stop')) {
-    currentQuestionIndex = 0;
-    correctAnswersCount = 0;
-    bot.sendMessage(chatId, 'Викторина завершена! Напишите команду /quiz для повторного участия.', { reply_markup: { hide_keyboard: true }});
-  }
-
-  const currentQuestion = questions[currentQuestionIndex];
-
-  if (msg.text === currentQuestion.options[currentQuestion.correctOptionIndex]) {
-    correctAnswersCount++;
-
-    if (currentQuestionIndex < questions.length - 1) {
-      currentQuestionIndex++;
-      sendQuestion(chatId);
-    } else {
-      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов. Напишите команду /quiz для повторного участия.`, { reply_markup: { hide_keyboard: true }});
-    }
-  } else {
-    if (currentQuestionIndex < questions.length - 1) {
-      currentQuestionIndex++;
-      sendQuestion(chatId);
-    } else {
-      bot.sendMessage(chatId, `Викторина завершена! Вы ответили правильно на ${correctAnswersCount} из ${questions.length} вопросов. Напишите команду /quiz для повторного участия.`, { reply_markup: { hide_keyboard: true }});
-    }
-  }
 });
+
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, 'Привет, что бы поучаствовать в викторине введи команду /quiz')
+});
+
+bot.on("polling_error", console.log);
