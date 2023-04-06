@@ -104,9 +104,13 @@ bot.setMyCommands([
 function generateQuestionMessage(index) {
   const question = questions[index];
   const keyboard = question.options.map((option, index) => ({
-    text: option,
-    callback_data: index.toString()
-  }));
+  text: option,
+  callback_data: JSON.stringify({
+    questionIndex: index,
+    correctOptionIndex: question.correctOptionIndex
+  })
+}));
+
   return {
     text: question.question,
     reply_markup: {
@@ -115,21 +119,28 @@ function generateQuestionMessage(index) {
   };
 }
 
-const quizOptions = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [{ text: questions[0].options[0], callback_data: '0' }],
-      [{ text: questions[0].options[1], callback_data: '1' }],
-      [{ text: questions[0].options[2], callback_data: '2' }],
-      [{ text: questions[0].options[3], callback_data: '3' }]
-    ]
-  })
-};
-
 // Reaction on the button
 
 let currentQuestionIndex = 0;
 let correctCount = 0;
+
+let quizOptions = {};
+
+function updateQuizOptions() {
+  const options = questions[currentQuestionIndex].options;
+  const keyboard = [];
+  for (let i = 0; i < options.length; i++) {
+    keyboard.push([{ text: options[i], callback_data: i.toString() }]);
+  }
+  quizOptions = {
+    reply_markup: JSON.stringify({
+      inline_keyboard: keyboard
+    })
+  };
+}
+
+// Call this function to update quizOptions whenever the current question changes
+updateQuizOptions();
 
 bot.on("callback_query", msg => {
   const chatId = msg.message.chat.id;
