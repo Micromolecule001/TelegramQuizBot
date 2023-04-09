@@ -103,44 +103,29 @@ bot.setMyCommands([
 
 function generateQuestionMessage(index) {
   const question = questions[index];
-  const keyboard = question.options.map((option, index) => ({
-  text: option,
-  callback_data: JSON.stringify({
-    questionIndex: index,
-    correctOptionIndex: question.correctOptionIndex
-  })
-}));
-
+  const options = question.options.map((option, index) => ({
+    text: option,
+    callback_data: index.toString()
+  }));
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: questions[index].options[0], callback_data: '0' }],
+      [{ text: questions[index].options[1], callback_data: '1' }],
+      [{ text: questions[index].options[2], callback_data: '2' }],
+      [{ text: questions[index].options[3], callback_data: '3' }]
+    ]
+  };
   return {
     text: question.question,
-    reply_markup: {
-      inline_keyboard: [keyboard]
-    }
+    reply_markup: keyboard
   };
 }
+
 
 // Reaction on the button
 
 let currentQuestionIndex = 0;
 let correctCount = 0;
-
-let quizOptions = {};
-
-function updateQuizOptions() {
-  const options = questions[currentQuestionIndex].options;
-  const keyboard = [];
-  for (let i = 0; i < options.length; i++) {
-    keyboard.push([{ text: options[i], callback_data: i.toString() }]);
-  }
-  quizOptions = {
-    reply_markup: JSON.stringify({
-      inline_keyboard: keyboard
-    })
-  };
-}
-
-// Call this function to update quizOptions whenever the current question changes
-updateQuizOptions();
 
 bot.on("callback_query", msg => {
   const chatId = msg.message.chat.id;
@@ -159,7 +144,9 @@ bot.on("callback_query", msg => {
     // If there are more questions, ask the next question
     const questionMessage = generateQuestionMessage(currentQuestionIndex);
     text = questionMessage.text;
-    bot.sendMessage(chatId, text, quizOptions);
+    bot.sendMessage(chatId, text, {
+    reply_markup: questionMessage.reply_markup
+  });
   } else {
     // If all questions have been asked, display the final score
     text = `Твой результат: ${correctCount}/${questions.length}`;
@@ -169,15 +156,18 @@ bot.on("callback_query", msg => {
   }
 });
 
-
- 
 //command "/quiz"
 
 bot.onText(/\/quiz/, (msg) => {
+  correctCount = 0;
   const chatId = msg.chat.id;
   const questionMessage = generateQuestionMessage(0);
-  bot.sendMessage(chatId, questionMessage.text, quizOptions);
+  bot.sendMessage(chatId, questionMessage.text, {
+    reply_markup: questionMessage.reply_markup
+  });
 });
+
+//command "/start"
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
